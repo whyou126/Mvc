@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22602.0
+VisualStudioVersion = 14.0.22609.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{DAAE4C74-D06F-4874-A166-33305D2643CE}"
 EndProject
@@ -148,10 +148,10 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BestEffortLinkGenerationWeb
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.JasonPatch", "src\Microsoft.AspNet.JasonPatch\Microsoft.AspNet.JasonPatch.kproj", "{379A9471-17F4-4782-B3A3-BBBB1DD9CC47}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.JsonPatch.Test", "test\Microsoft.AspNet.JsonPatch.Test\Microsoft.AspNet.JsonPatch.Test.kproj", "{81C20848-E063-4E12-AC40-0B55A532C16C}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "LowercaseUrlsWebSite", "test\WebSites\LowercaseUrlsWebSite\LowercaseUrlsWebSite.kproj", "{BCDB13A6-7D6E-485E-8424-A156432B71AC}"EndProjectProject("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.AspNet.JsonPatch.Test", "test\Microsoft.AspNet.JsonPatch.Test\Microsoft.AspNet.JsonPatch.Test.kproj", "{81C20848-E063-4E12-AC40-0B55A532C16C}"
 EndProject
-Global	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
@@ -901,8 +901,8 @@ Global	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		{4D55F4D8-633B-462F-A5B1-FEB84BD2D534}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D55F4D8-633B-462F-A5B1-FEB84BD2D534}.Release|x86.ActiveCfg = Release|Any CPU
 		{4D55F4D8-633B-462F-A5B1-FEB84BD2D534}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{079EFA1F-0B0A-4853-B27B-5780D111CD85} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
@@ -974,5 +974,6 @@ Global	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		{81C20848-E063-4E12-AC40-0B55A532C16C} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{379A9471-17F4-4782-B3A3-BBBB1DD9CC47} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
 		{BCDB13A6-7D6E-485E-8424-A156432B71AC} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
-		{4D55F4D8-633B-462F-A5B1-FEB84BD2D534} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}	EndGlobalSection
+		{4D55F4D8-633B-462F-A5B1-FEB84BD2D534} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
+	EndGlobalSection
 EndGlobal
