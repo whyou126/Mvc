@@ -136,7 +136,22 @@ namespace Microsoft.AspNet.Mvc.Description
                 foreach (var actionParameter in context.ActionDescriptor.Parameters)
                 {
                     var visitor = new PseudoModelBindingVisitor(context, actionParameter);
-                    visitor.WalkParameter();
+                    var modelMetadata = context.MetadataProvider.GetMetadataForParameter(
+                    methodInfo: context.ActionDescriptor.MethodInfo,
+                    parameterName: actionParameter.Name);
+                    visitor.WalkParameter(modelMetadata);
+                }
+            }
+
+            if (context.ActionDescriptor.CommonParameters != null)
+            {
+                foreach (var actionParameter in context.ActionDescriptor.CommonParameters)
+                {
+                    var visitor = new PseudoModelBindingVisitor(context, actionParameter);
+                    var modelMetadata = context.MetadataProvider.GetMetadataForProperty(
+                    containerType: context.ActionDescriptor.ControllerTypeInfo.AsType(),
+                    propertyName: actionParameter.Name);
+                    visitor.WalkParameter(modelMetadata);
                 }
             }
 
@@ -431,12 +446,8 @@ namespace Microsoft.AspNet.Mvc.Description
             // Avoid infinite recursion by tracking properties. 
             private HashSet<PropertyKey> Visited { get; }
 
-            public void WalkParameter()
+            public void WalkParameter(ModelMetadata modelMetadata)
             {
-                var modelMetadata = Context.MetadataProvider.GetMetadataForParameter(
-                    methodInfo: Context.ActionDescriptor.MethodInfo,
-                    parameterName: Parameter.Name);
-
                 var binderMetadata = Parameter.BinderMetadata;
                 if (binderMetadata != null)
                 {

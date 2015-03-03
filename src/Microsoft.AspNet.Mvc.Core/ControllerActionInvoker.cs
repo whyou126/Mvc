@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Core
             ActionContext context, 
             ActionBindingContext bindingContext)
         {
-            return _argumentBinder.GetActionArgumentsAsync(context, bindingContext);
+            return _argumentBinder.GetActionArgumentsAsync(context, bindingContext, Instance);
         }
 
         // Marking as internal for Unit Testing purposes.

@@ -47,6 +47,27 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
             Assert.True(model.Filters.Any(f => f is AuthorizeFilter));
         }
 
+        [Fact]
+        public void BuildControllerModel_AddsControllerProperties()
+        {
+            // Arrange
+            var builder = new DefaultControllerModelBuilder(new DefaultActionModelBuilder(null),
+                                                            NullLoggerFactory.Instance,
+                                                            null);
+            var typeInfo = typeof(ModelBinderController).GetTypeInfo();
+
+            // Act
+            var model = builder.BuildControllerModel(typeInfo);
+
+            // Assert
+            Assert.Equal(2, model.ControllerProperties.Count);
+            Assert.Equal("Bound", model.ControllerProperties[0].PropertyName);
+            Assert.IsType<FromQueryAttribute>(model.ControllerProperties[0].BinderMetadata);
+            Assert.NotNull(model.ControllerProperties[0].Controller);
+            var attribute = Assert.Single(model.ControllerProperties[0].Attributes);
+            Assert.Same(attribute, model.ControllerProperties[0].BinderMetadata);
+        }
+
         // This class has a filter attribute, but doesn't implement any filter interfaces,
         // so ControllerFilter is not present.
         [Fact]
@@ -111,6 +132,14 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         [Authorize]
         public class AccountController
         {
+        }
+
+        public class ModelBinderController
+        {
+            [FromQuery]
+            public string Bound { get; set; }
+
+            public string UnBound { get; set; }
         }
 
         public class SomeFiltersController : IAsyncActionFilter, IResultFilter
