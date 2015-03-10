@@ -307,12 +307,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var server = TestHelper.CreateServer(_app, SiteName);
             var client = server.CreateClient();
-            var input = "{\"SampleInt\":10}";
 
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
                 "http://localhost/ActionResultsVerification/GetNotFoundObjectResultWithContent");
-            request.Content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
             var response = await client.SendAsync(request);
@@ -320,6 +318,25 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             Assert.Equal("{\"SampleInt\":10,\"SampleString\":\"Foo\"}", await response.Content.ReadAsStringAsync());
+        }
+
+        [Fact]
+        public async Task HttpNotFoundObjectResult_WithDisposableObject()
+        {
+            // Arrange
+            var server = TestHelper.CreateServer(_app, SiteName);
+            var client = server.CreateClient();
+
+            // Act
+            var response1 = await client.GetAsync("/ActionResultsVerification/GetDisposeCallCount");
+            await client.GetAsync("/ActionResultsVerification/GetNotFoundObjectResultWithDisposableObject");
+            var response2 = await client.GetAsync("/ActionResultsVerification/GetDisposeCallCount");
+
+            // Assert
+            var initialCallCount = Convert.ToInt32(await response1.Content.ReadAsStringAsync());
+            var finalCallCount = Convert.ToInt32(await response2.Content.ReadAsStringAsync());
+            Assert.True(initialCallCount == 0);
+            Assert.True(finalCallCount > 0);
         }
     }
 }

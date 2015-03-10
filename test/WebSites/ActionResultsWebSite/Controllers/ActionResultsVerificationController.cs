@@ -5,6 +5,7 @@ using System;
 using System.Text;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.WebUtilities;
+using Microsoft.Framework.Internal;
 
 namespace ActionResultsWebSite
 {
@@ -95,6 +96,16 @@ namespace ActionResultsWebSite
             return HttpNotFound(CreateDummy());
         }
 
+        public IActionResult GetNotFoundObjectResultWithDisposableObject()
+        {
+            return HttpNotFound(CreateDisposableDummy());
+        }
+
+        public int GetDisposeCallCount()
+        {
+            return DisposableDummy.disposeCallCount;
+        }
+
         public DummyClass GetDummy(int id)
         {
             return CreateDummy();
@@ -107,6 +118,21 @@ namespace ActionResultsWebSite
                 SampleInt = 10,
                 SampleString = "Foo"
             };
+        }
+
+        private DisposableDummy CreateDisposableDummy()
+        {
+            return new DisposableDummy();
+        }
+
+        private class DisposableDummy : IDisposable
+        {
+            public static int disposeCallCount = 0;
+
+            public void Dispose()
+            {
+                disposeCallCount++;
+            }
         }
     }
 }
