@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
@@ -106,29 +105,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
 
             // Assert
             Assert.Equal(input, result.Value);
-        }
-
-        [Fact]
-        public async Task NoAcceptAndContentTypeHeaders_DoNotAllowOverridingRequestContentType_DoesNotTakeEffect()
-        {
-            // Arrange
-            var expectedContentType = "application/json; charset=utf-8";
-
-            var input = 123;
-            var httpResponse = new DefaultHttpContext().Response;
-            httpResponse.Body = new MemoryStream();
-            var actionContext = CreateMockActionContext(httpResponse);
-
-            var result = new ObjectResult(input);
-            result.AllowOverridingRequestContentType = false;
-            result.ContentTypes = new List<MediaTypeHeaderValue>();
-            result.ContentTypes.Add(MediaTypeHeaderValue.Parse(expectedContentType));
-
-            // Act
-            await result.ExecuteResultAsync(actionContext);
-
-            // Assert
-            Assert.Equal(expectedContentType, httpResponse.ContentType);
         }
 
         [Fact]
@@ -584,8 +560,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             string expectedResponseContentType)
         {
             // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.RespectBrowserAcceptHeader = true;
             var objectResult = new ObjectResult(new Person() { Name = "John" });
             var outputFormatters = new IOutputFormatter[] {
                 new HttpNoContentOutputFormatter(),
@@ -599,7 +573,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                     outputFormatters,
                                     response.Object,
                                     requestAcceptHeader: acceptHeader,
-                                    mvcOptions: mvcOptions);
+                                    respectBrowserAcceptHeader: true);
 
             // Act
             await objectResult.ExecuteResultAsync(actionContext);
@@ -619,8 +593,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             bool respectBrowserAcceptHeader)
         {
             // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
             var objectResult = new ObjectResult(new Person() { Name = "John" });
             objectResult.ContentTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
             objectResult.ContentTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
@@ -636,7 +608,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                     outputFormatters,
                                     response.Object,
                                     acceptHeader,
-                                    mvcOptions: mvcOptions);
+                                    respectBrowserAcceptHeader: respectBrowserAcceptHeader);
 
             // Act
             await objectResult.ExecuteResultAsync(actionContext);
@@ -671,167 +643,12 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             Assert.Equal(expectedMessage, exception.Message);
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task ObjectResult_WithStringType_WritesTextPlainFormat(bool allowOverridingRequestContentType)
-        {
-            // Arrange
-            var expectedData = "Hello World!";
-            var objectResult = new ObjectResult(expectedData);
-            var outputFormatters = new IOutputFormatter[] {
-                new StringOutputFormatter(),
-                new JsonOutputFormatter()
-            };
-            var response = new Mock<HttpResponse>();
-            var responseStream = new MemoryStream();
-            response.SetupGet(r => r.Body).Returns(responseStream);
-
-            var mvcOptions = new MvcOptions();
-            mvcOptions.AllowOverridingRequestContentType = allowOverridingRequestContentType;
-            var actionContext = CreateMockActionContext(
-                                    outputFormatters,
-                                    response.Object,
-                                    requestAcceptHeader: "application/json",
-                                    mvcOptions: mvcOptions);
-
-            // Act
-            await objectResult.ExecuteResultAsync(actionContext);
-
-            // Assert
-            response.VerifySet(r => r.ContentType = "text/plain; charset=utf-8");
-            responseStream.Position = 0;
-            var actual = new StreamReader(responseStream).ReadToEnd();
-            Assert.Equal(expectedData, actual);
-        }
-
-        [Fact]
-        public async Task ObjectResult_WithSingleContentType_IgnoresAllowOverridingRequestContentType_Setting()
-        {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.AllowOverridingRequestContentType = false;
-            var objectResult = new ObjectResult(new Person() { Name = "John" });
-            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
-            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
-            var response = new Mock<HttpResponse>();
-            var responseStream = new MemoryStream();
-            response.SetupGet(r => r.Body).Returns(responseStream);
-            var expectedData = "{\"Name\":\"John\"}";
-
-            var actionContext = CreateMockActionContext(
-                                    outputFormatters,
-                                    response.Object,
-                                    requestAcceptHeader: "application/non-existing",
-                                    requestContentType: "application/non-existing",
-                                    mvcOptions: mvcOptions);
-
-            // Act
-            await objectResult.ExecuteResultAsync(actionContext);
-
-            // Assert
-            response.VerifySet(r => r.ContentType = "application/json; charset=utf-8");
-            responseStream.Position = 0;
-            var actual = new StreamReader(responseStream).ReadToEnd();
-            Assert.Equal(expectedData, actual);
-        }
-
-        [Fact]
-        public async Task ObjectResult_WithMultipleContentTypes_IgnoresAllowOverridingRequestContentType_Setting()
-        {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.AllowOverridingRequestContentType = false;
-            var objectResult = new ObjectResult(new Person() { Name = "John" });
-            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/foo"));
-            objectResult.ContentTypes.Add(new MediaTypeHeaderValue("application/json"));
-            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
-            var response = new Mock<HttpResponse>();
-            var responseStream = new MemoryStream();
-            response.SetupGet(r => r.Body).Returns(responseStream);
-            var expectedData = "{\"Name\":\"John\"}";
-
-            var actionContext = CreateMockActionContext(
-                                    outputFormatters,
-                                    response.Object,
-                                    requestAcceptHeader: "application/non-existing",
-                                    requestContentType: "application/non-existing",
-                                    mvcOptions: mvcOptions);
-
-            // Act
-            await objectResult.ExecuteResultAsync(actionContext);
-
-            // Assert
-            response.VerifySet(r => r.ContentType = "application/json; charset=utf-8");
-            responseStream.Position = 0;
-            var actual = new StreamReader(responseStream).ReadToEnd();
-            Assert.Equal(expectedData, actual);
-        }
-
-        [Fact]
-        public async Task ObjectResult_DoesNot_MatchOnObjectType_BasedOnMvcOptions()
-        {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.AllowOverridingRequestContentType = false;
-            var objectResult = new ObjectResult(new Person() { Name = "John" });
-            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
-            var response = new Mock<HttpResponse>();
-            var responseStream = new MemoryStream();
-            response.SetupGet(r => r.Body).Returns(responseStream);
-
-            var actionContext = CreateMockActionContext(
-                                    outputFormatters,
-                                    response.Object,
-                                    requestAcceptHeader: "application/non-existing",
-                                    requestContentType: "application/non-existing",
-                                    mvcOptions: mvcOptions);
-
-            // Act
-            await objectResult.ExecuteResultAsync(actionContext);
-
-            // Assert
-            response.VerifySet(resp => resp.StatusCode = 406);
-            response.VerifySet(resp => resp.ContentType = It.IsAny<string>(), Times.Never());
-            Assert.Equal(0, responseStream.Length);
-        }
-
-        [Fact]
-        public async Task ObjectResult_OverridesMvcOptions_AndDoesNot_EnableMatchOnObjectType()
-        {
-            // Arrange
-            var mvcOptions = new MvcOptions();
-            mvcOptions.AllowOverridingRequestContentType = false;
-            var objectResult = new ObjectResult(new Person() { Name = "John" });
-            objectResult.AllowOverridingRequestContentType = true;
-            var outputFormatters = new IOutputFormatter[] { new JsonOutputFormatter() };
-            var response = new Mock<HttpResponse>();
-            var responseStream = new MemoryStream();
-            response.SetupGet(r => r.Body).Returns(responseStream);
-            var expectedData = "{\"Name\":\"John\"}";
-
-            var actionContext = CreateMockActionContext(
-                                    outputFormatters,
-                                    response.Object,
-                                    requestAcceptHeader: "application/non-existing",
-                                    mvcOptions: mvcOptions);
-
-            // Act
-            await objectResult.ExecuteResultAsync(actionContext);
-
-            // Assert
-            response.VerifySet(r => r.ContentType = "application/json; charset=utf-8");
-            responseStream.Position = 0;
-            var actual = new StreamReader(responseStream).ReadToEnd();
-            Assert.Equal(expectedData, actual);
-        }
-
         private static ActionContext CreateMockActionContext(
                                                              HttpResponse response = null,
                                                              string requestAcceptHeader = "application/*",
                                                              string requestContentType = "application/json",
                                                              string requestAcceptCharsetHeader = "",
-                                                             MvcOptions options = null)
+                                                             bool respectBrowserAcceptHeader = false)
         {
             var formatters = new IOutputFormatter[] { new StringOutputFormatter(), new JsonOutputFormatter() };
 
@@ -841,7 +658,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                             requestAcceptHeader: requestAcceptHeader,
                                             requestContentType: requestContentType,
                                             requestAcceptCharsetHeader: requestAcceptCharsetHeader,
-                                            mvcOptions: options);
+                                            respectBrowserAcceptHeader: respectBrowserAcceptHeader);
         }
 
         private static ActionContext CreateMockActionContext(
@@ -850,7 +667,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
                                                              string requestAcceptHeader = "application/*",
                                                              string requestContentType = "application/json",
                                                              string requestAcceptCharsetHeader = "",
-                                                             MvcOptions mvcOptions = null)
+                                                             bool respectBrowserAcceptHeader = false)
         {
             var httpContext = new Mock<HttpContext>();
             if (response != null)
@@ -872,16 +689,14 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOutputFormattersProvider)))
                        .Returns(new TestOutputFormatterProvider(outputFormatters));
 
-            if (mvcOptions == null)
-            {
-                mvcOptions = new MvcOptions();
-            }
-
-            var mockOptions = new Mock<IOptions<MvcOptions>>();
-            mockOptions.SetupGet(o => o.Options).Returns(mvcOptions);
-
+            var options = new Mock<IOptions<MvcOptions>>();
+            options.SetupGet(o => o.Options)
+                       .Returns(new MvcOptions()
+                       {
+                           RespectBrowserAcceptHeader = respectBrowserAcceptHeader
+                       });
             httpContext.Setup(o => o.RequestServices.GetService(typeof(IOptions<MvcOptions>)))
-                       .Returns(mockOptions.Object);
+                       .Returns(options.Object);
 
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
