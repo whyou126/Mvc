@@ -3,6 +3,7 @@
 
 using System.IO;
 using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ViewComponents;
 
 namespace Microsoft.AspNet.Mvc
 {

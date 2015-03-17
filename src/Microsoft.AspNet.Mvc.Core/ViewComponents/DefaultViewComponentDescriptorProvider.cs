@@ -43,15 +43,15 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         protected virtual IEnumerable<TypeInfo> GetCandidateTypes()
         {
             var assemblies = _assemblyProvider.CandidateAssemblies;
-            return assemblies.SelectMany(a => a.DefinedTypes);
+            return assemblies.SelectMany(a => a.ExportedTypes).Select(t => t.GetTypeInfo());
         }
 
         /// <summary>
-        /// Determines whether or not the given <see cref="TypeInfo"/> represents a View Component class.
+        /// Determines whether or not the given <see cref="TypeInfo"/> is a View Component class.
         /// </summary>
         /// <param name="typeInfo">The <see cref="TypeInfo"/>.</param>
         /// <returns>
-        /// <c>true</c> if <paramref name="typeInfo"/>represents a View Component class, otherwise <c>false</c>.
+        /// <c>true</c> if <paramref name="typeInfo"/> is a View Component class, otherwise <c>false</c>.
         /// </returns>
         protected virtual bool IsViewComponentType([NotNull] TypeInfo typeInfo)
         {
@@ -63,7 +63,6 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             var candidate = new ViewComponentDescriptor()
             {
                 FullName = ViewComponentConventions.GetComponentFullName(typeInfo),
-                ShortName = ViewComponentConventions.GetComponentName(typeInfo),
                 Type = typeInfo.AsType(),
             };
 
